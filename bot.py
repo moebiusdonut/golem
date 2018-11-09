@@ -3,6 +3,7 @@
 import discord
 import config
 import quest
+import shlex
 
 client = discord.Client()
 
@@ -14,8 +15,7 @@ def parseArguments(p_arguments):
     if len(p_arguments) == 0:
         argumentsMap;
 
-    splitted = p_arguments.split(' ');
-
+    splitted = shlex.split(p_arguments);
     prevArg = "";
     for arg in splitted:
         if arg.startswith(config.PARAM_SYMBOL):
@@ -24,6 +24,7 @@ def parseArguments(p_arguments):
 
         if prevArg != "":
             argumentsMap[prevArg] = arg;
+            prevArg = "";
             continue;
 
         argumentsMap[config.SUBCOMMAND_KEY].append(arg);
@@ -58,16 +59,18 @@ async def on_message(message):
 
     
     argMap = parseArguments(arguments);
-    
-    #msg = "command = " + command + str(argMap);
-    #print(message.channel);
-    #await client.send_message(message.channel, msg);
+    result = False;
 
     # Commands factory
     if command == 'quest':
         cmdAction = quest.QestCommandAction(client, message.channel, argMap);
-        await cmdAction.execute(client, message.channel, argMap);
+        result = await cmdAction.execute(client, message.channel, argMap);
     
+
+
+    if result == False:
+        msg = "Command '" + command + "' failed! *Golem stomps ground with rage*";
+        await client.send_message(message.channel, msg);
 
     
 

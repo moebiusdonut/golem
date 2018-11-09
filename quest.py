@@ -10,12 +10,15 @@ import config
 class QuestPlaceData:
 	_id   = "";
 	_name = "";
+	_desc = "";
 	_eta  = "";
 
-	def __init__(self, p_id, p_name, p_eta):
+	# Ctor ---
+	def __init__(self, p_id, p_name, p_eta, p_description):
 		print("QuestPlaceData: ctor (" + p_id + ", " + p_name + ", " + p_eta + ");");
 		self._id   = p_id;
 		self._name = p_name;
+		self._desc = p_description;
 		self._eta  = p_eta;
 
 
@@ -38,8 +41,13 @@ class QuestData:
 globalPlaces = [];
 globalQuests = [];
 
-globalPlaces.append(QuestPlaceData("jfc", "Johanas Fish & Chips", "40min+"));
-globalPlaces.append(QuestPlaceData("mcdo", "McDonald's", "20min"));
+globalPlaces.append(QuestPlaceData("annka", "Annka", "20min", "Best salads in town!"));
+globalPlaces.append(QuestPlaceData("jfc", "Johanas Fish & Chips", "50min+", ""));
+globalPlaces.append(QuestPlaceData("mcdo", "McDonald's", "20min", ""));
+globalPlaces.append(QuestPlaceData("b321", "Burger 321 (or whatever the numbers are)", "35min", "Great American burgers"));
+globalPlaces.append(QuestPlaceData("bento", "52^2m Bento", "35min", ""));
+globalPlaces.append(QuestPlaceData("bistro", "Bistropolitain", "30-40min", "French cousine"));
+globalPlaces.append(QuestPlaceData("burrito", "Chippotle", "30-40min", "Tacos / Burritos"));
 
 
 
@@ -55,43 +63,53 @@ class QestCommandAction:
 	async def execute(self, p_discordClient, p_channel, p_argMap):
 		if len(p_argMap[config.SUBCOMMAND_KEY]) == 0:
 			print ("QestCommandAction: no actions defined");
-			return;
+			return False;
 
 		action = p_argMap[config.SUBCOMMAND_KEY][0];
 		if (action == "post"):
 			pid = p_argMap.get("-pid");
 			if (pid is None):
 				await p_discordClient.send_message(p_channel, "No place id specified. Use -pid.");
-				return;
+				return False;
 
 			placeData = None;
 			for place in globalPlaces:
-				print ("Comparing " + pid + "  with " + place._id);
 				if (place._id == pid):
 					placeData = place;
 					break;
 
 			if (placeData is None):
 				await p_discordClient.send_message(p_channel, "Specified place id not found.");
-				return;
+				return False;
 
 			questName = p_argMap.get("-n");
 			if (questName is None):
 				await p_discordClient.send_message(p_channel, "No quest name specified. Use -n");
-				return;
+				return False;
 
 			newQuest = QuestData(questName, placeData);
 			globalQuests.append(newQuest);
 
 			await self.postQuestToChat(p_discordClient, p_channel, newQuest);
-			return;
+			return True;
 
-		if action == "list":
-			msg = "No quests available :(";
-			print(msg);
-			await p_discordClient.send_message(p_channel, msg);
+		if action == "place":
+			if len(p_argMap[config.SUBCOMMAND_KEY]) < 2:
+				await p_discordClient.send_message(p_channel, "_Place? This is a place, yes. Me sure quest can be somewhere in this place too_");
+				return False;
 
-		return;
+			term = p_argMap[config.SUBCOMMAND_KEY][1];
+			if term == "list":
+				msg = "_Me remember those:\n\n";
+
+				for place in globalPlaces:
+					msg += "**" + place._name + "** (pid: **" + place._id + "**)\n";
+
+				msg += "_";
+				await p_discordClient.send_message(p_channel, msg);
+				return True;
+
+		return False;
 
 
 	# Post quest to chat ---
@@ -99,6 +117,10 @@ class QestCommandAction:
 		placeData = p_quest._placeData;
 		msg = "_New Quest Available: **" + p_quest._name + "**\n";
 		msg += "at: **" + placeData._name + "** (" + placeData._id + ")\n";
+
+		if placeData._desc != "":
+			msg += placeData._desc + "\n";
+
 		msg += "ETA: **" + placeData._eta + "**\n";
 		msg += "**[ > quest accept " + placeData._id + " ]** to participate._";
 		await p_discordClient.send_message(p_channel, msg);
