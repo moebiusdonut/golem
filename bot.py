@@ -3,9 +3,11 @@
 import discord
 import config
 import quest
+import state
 import shlex
 
-client = discord.Client()
+client = discord.Client();
+gameState = state.GameState();
 
 
 # Parse arguments ---
@@ -63,20 +65,18 @@ async def on_message(message):
 
     # Commands factory
     if command == 'quest':
-        cmdAction = quest.QestCommandAction(client, message.channel, argMap);
-        result = await cmdAction.execute(client, message.channel, argMap);
+        cmdAction = quest.QestCommandAction(client, message.channel, gameState);
+        result = await cmdAction.execute(argMap);
     
 
 
     if result == False:
         msg = "Command '" + command + "' failed! *Golem stomps ground with rage*";
         await client.send_message(message.channel, msg);
+    else:
+        gameState.save();
 
     
-
-
-
-
 
 @client.event
 async def on_ready():
@@ -84,5 +84,12 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    
+    gameState.load();
 
 client.run(config.TOKEN)
+
+
+
+
+# eof
