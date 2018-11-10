@@ -119,6 +119,27 @@ class QestCommandAction:
 				await self._discordClient.send_message(self._discordChannel, msg);
 				return True;
 
+			if term == "add":
+				# >quest place add -n "Johana The Fish" -pid jfc -eta "50min+" [-desc "Some kind of description"]
+				placeName = p_argMap.get("-n");
+				placeID   = p_argMap.get("-pid");
+				placeETA  = p_argMap.get("-eta");
+				placeDesc = p_argMap.get("-desc", "");
+
+				if (placeName is None or placeID is None or placeETA is None):
+					msg = "_Me not understand you, human. What is this new place you talk to me about ?_";
+					await self._discordClient.send_message(self._discordChannel, msg);
+					return False;
+
+				newPlace = QuestPlaceData(placeID, placeName, placeETA, placeDesc);
+				self._gameState.addQuestPlace(newPlace);
+
+				msg = "_Ok, human. I will remember that. Golems known for good memory... i guess._";
+				await self._discordClient.send_message(self._discordChannel, msg);
+				return True;
+
+
+
 		return False;
 
 

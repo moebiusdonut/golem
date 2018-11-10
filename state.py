@@ -28,6 +28,7 @@ class GameState:
 			self._questPlaces.append(place);
 
 
+	# Save game state from save file ---
 	def save(self):
 		data = {};
 
@@ -42,3 +43,6 @@ class GameState:
 			json.dump(data, outfile);
 
 
+	# Add quest place ---
+	def addQuestPlace(self, p_questPlaceData):
+		self._questPlaces.append(p_questPlaceData);

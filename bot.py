@@ -49,7 +49,7 @@ async def on_message(message):
 
     if command == config.COMMAND_SYMBOL: 
         # '>(space)command' scenario
-        splitted = splitted.split(' ', 1);
+        splitted = splitted[1].split(' ', 1);
         command = splitted[0];
     else:
         # '>command' scenario
