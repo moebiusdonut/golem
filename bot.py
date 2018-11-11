@@ -35,6 +35,13 @@ def parseArguments(p_arguments):
     return argumentsMap;
 
 
+# Add user if does not exist ---
+def addUserIfNotExist(p_user):
+    usr = gameState.getUserByID(p_user.id);
+    if usr is None:
+        gameState.addUser(p_user.id, p_user.name);
+
+
 #On Message ---
 @client.event
 async def on_message(message):
@@ -45,10 +52,7 @@ async def on_message(message):
     if not message.content.startswith(config.COMMAND_SYMBOL) or len(message.content) == 1:
         return;
 
-    usrID = message.author.id;
-    usr = gameState.getUserByID(usrID);
-    if usr is None:
-        gameState.addUser(usrID, message.author.name);
+    addUserIfNotExist(message.author); # Because user can join server after bot starts
 
 
     splitted = message.content.split(' ', 1);
@@ -67,6 +71,7 @@ async def on_message(message):
         arguments = splitted[1];
 
     
+    usrID  = message.author.id;
     argMap = parseArguments(arguments);
     result = False;
 
@@ -92,10 +97,13 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
-    for memeber in client.get_all_members():
-        print(memeber.id + " = " + memeber.name);
-    
     gameState.load();
+
+    for member in client.get_all_members():
+        print(member.id + " = " + member.name);
+        if member != client.user:
+            addUserIfNotExist(member);
+    
 
 client.run(config.TOKEN)
 

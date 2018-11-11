@@ -60,9 +60,9 @@ class GameState:
 
 	# Get user by id ---
 	def getUserByID(self, p_id):
-		for user in self._users:
-			if user._id == p_id:
-				return user;
+		for usr in self._users:
+			if usr._id == p_id:
+				return usr;
 
 		return None;
 

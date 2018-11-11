@@ -151,13 +151,8 @@ class QestCommandAction:
 				return False;
 
 			if len(self._gameState._activeQuests) == 1:
-				usr = self._gameState.getUserByID(self._casterUserID);
 				quest = self._gameState._activeQuests[0];
-				quest.addParticipant(usr);
-				username = usr.getNameRepresentation();
-				msg = "_" + username + " joined **" + quest._name + "**_";
-				await self._discordClient.send_message(self._discordChannel, msg);
-				return True;
+				return await self._joinQuest(quest, self._casterUserID);
 
 			msg = "_Joining quest is good, but which -- that is the question._";
 			await self._discordClient.send_message(self._discordChannel, msg);
@@ -169,12 +164,7 @@ class QestCommandAction:
 			await self._discordClient.send_message(self._discordChannel, msg);
 			return False;
 
-		usr = self._gameState.getUserByID(self._casterUserID);
-		quest.addParticipant(usr);
-		username = usr.getNameRepresentation();
-		msg = "_" + username + " joined **" + quest._name + "**_";
-		await self._discordClient.send_message(self._discordChannel, msg);
-		return True;
+		return await self._joinQuest(quest, self._casterUserID);
 			
 
 
@@ -226,6 +216,22 @@ class QestCommandAction:
 		msg += "Once desired place is known you can post a quest for it:\n\n"
 		msg += '>quest post -n "New Quest Name" -pid existing_pid\n';
 		msg += ">quest post random```";
+		await self._discordClient.send_message(self._discordChannel, msg);
+		return True;
+
+
+	# Join quest ---
+	async def _joinQuest(self, p_quest, p_userID):
+		usr = self._gameState.getUserByID(p_userID);
+		username = usr.getNameRepresentation();
+		
+		if usr in p_quest._users:
+			msg = "_" + username + ", me know you are coming!_";
+			await self._discordClient.send_message(self._discordChannel, msg);
+			return False;
+
+		p_quest.addParticipant(usr);
+		msg = "_" + username + " joined **" + p_quest._name + "**_";
 		await self._discordClient.send_message(self._discordChannel, msg);
 		return True;
 
