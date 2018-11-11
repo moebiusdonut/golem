@@ -53,10 +53,12 @@ class QuestData:
 	def __init__(self, p_name, p_placeData):
 		self._name      = p_name;
 		self._placeData = p_placeData;
+		self._users     = [];
 
 
 	# Add user as participant ---
 	def addParticipant(self, p_user):
+		print("Adding participant to " + self._name);
 		self._users.append(p_user);
 
 
@@ -165,7 +167,7 @@ class QestCommandAction:
 			return False;
 
 		return await self._joinQuest(quest, self._casterUserID);
-			
+		return True;
 
 
 	# Process "quest place ..." command ---

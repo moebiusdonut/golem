@@ -1,8 +1,8 @@
 # state.py
 
 import json
-import quest
-import user
+import quest as Quest
+import user as User
 
 # ---------------------
 #      GameState
@@ -12,11 +12,6 @@ class GameState:
 	_questPlaces  = [];
 	_activeQuests = [];
 
-	
-	# Ctor ---
-	def __init__(self):
-		pass;
-
 
 	# Load game state from save file ---
 	def load(self):
@@ -25,13 +20,13 @@ class GameState:
 
 		users = data["users"];
 		for userData in users:
-			usr = user.UserData();
+			usr = User.UserData();
 			usr.fromJSON(userData);
-			self._users.append(user);
+			self._users.append(usr);
 
 		places = data['places'];
 		for placeData in places:
-			place = quest.QuestPlaceData('', '', '');
+			place = Quest.QuestPlaceData('', '', '');
 			place.fromJSON(placeData);
 			self._questPlaces.append(place);
 
@@ -73,7 +68,7 @@ class GameState:
 			print("ERROR: trying to add existing user " + p_pid);
 			return;
 
-		newUser = user.UserData();
+		newUser = User.UserData();
 		newUser._id = p_id;
 		newUser._name = p_name;
 		self._users.append(newUser);
@@ -86,6 +81,7 @@ class GameState:
 
 	# Add quest ---
 	def addQuest(self, p_quest):
+		print("adding quest...")
 		self._activeQuests.append(p_quest);
 
 
@@ -97,6 +93,34 @@ class GameState:
 
 		return None;
 
+
+	# Finish all active quests ---
+	async def finishAllActiveQuests(self, p_discordClient, p_channel):
+		print("finishing quests...");
+		print("channel is: " + str(p_channel));
+		for questData in self._activeQuests:
+			msg = "---------\n";
+			usersJoined = len(questData._users);
+			print("Quest = " + questData._name + ", " + str(questData) + ", users = " + str(questData._users));
+			
+			if usersJoined == 0:
+				msg += "_Quest **" + questData._name + "** failed. Princess in another castle._";
+				await p_discordClient.send_message(p_channel, msg);
+				continue;
+
+			creditsPerUser = 12 * usersJoined;
+
+			msg += "_Quest **" + questData._name + "** complete!\n";
+			for usr in questData._users:
+				msg += "**" + usr.getNameRepresentation() + "**, ";
+				usr._credits += creditsPerUser;
+
+			msg += "are getting **" + str(creditsPerUser) + "** credits each.\n";
+			msg += "Me proud of you meatbags!";
+			await p_discordClient.send_message(p_channel, msg);
+
+		print(str(len(self._activeQuests)) + " finished");
+		self._activeQuests = [];
 
 
 # eof

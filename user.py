@@ -10,11 +10,6 @@ class UserData:
 	_credits   = 0;
 
 
-	# Ctor ---
-	def __init__(self):
-		pass;
-
-
 	# Init from JSON ---
 	def fromJSON(self, p_data):
 		self._id        = p_data['id'];

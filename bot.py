@@ -6,9 +6,42 @@ import quest
 import state
 import user
 import shlex
+import threading
+import datetime
+import asyncio
 
 client = discord.Client();
 gameState = state.GameState();
+lastTimedActionTime = datetime.datetime.now();
+asyncTimer = None;
+
+
+class AsyncTimer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+        self._task = asyncio.ensure_future(self._job())
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        await self._callback()
+
+    def cancel(self):
+        self._task.cancel()
+
+
+# Time control ---
+async def timedAction():
+    asyncTimer = AsyncTimer(60 * 5, timedAction);
+    print("Heartbeat --");
+
+    now = datetime.datetime.now()
+    if now.hour == 13 and now.minute >= 30 and lastTimedActionTime.minute < 30:
+        await gameState.finishAllActiveQuests(client, client.get_channel('509421753106169879')); # ugly hack
+
+    lastTimedActionTime = now;
+
+
 
 
 # Parse arguments ---
@@ -103,6 +136,8 @@ async def on_ready():
         print(member.id + " = " + member.name);
         if member != client.user:
             addUserIfNotExist(member);
+
+    await timedAction();
     
 
 client.run(config.TOKEN)
