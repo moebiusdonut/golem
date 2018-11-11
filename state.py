@@ -25,8 +25,8 @@ class GameState:
 
 		users = data["users"];
 		for userData in users:
-			user = user.UserData();
-			user.fromJSON(userData);
+			usr = user.UserData();
+			usr.fromJSON(userData);
 			self._users.append(user);
 
 		places = data['places'];
@@ -41,8 +41,8 @@ class GameState:
 		data = {};
 
 		usersDataArray = [];
-		for user in self._users:
-			userData = user.toJSON();
+		for usr in self._users:
+			userData = usr.toJSON();
 			usersDataArray.append(userData);
 
 		data['users'] = usersDataArray;
