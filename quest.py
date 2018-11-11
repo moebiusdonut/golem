@@ -173,7 +173,8 @@ class QestCommandAction:
 		msg += ">quest place list \n";
 		msg += '>quest place add -n "Place Name" -pid place_id -eta "Estimated time" [-desc "Optional description"]\n\n';
 		msg += "Once desired place is known you can post a quest for it:\n\n"
-		msg += '>quest post -n "New Quest Name" -pid existing_pid```';
+		msg += '>quest post -n "New Quest Name" -pid existing_pid\n';
+		msg += ">quest post random```";
 		await self._discordClient.send_message(self._discordChannel, msg);
 		return True;
 
