@@ -3,6 +3,7 @@
 import discord
 import config
 import state
+import user
 import random
 
 
@@ -44,11 +45,19 @@ class QuestPlaceData:
 # ---------------------
 class QuestData:
 	_name      = "";
-	_placeData = object;
+	_placeData = None;
+	_users     = [];
 
+
+	# Ctor ---
 	def __init__(self, p_name, p_placeData):
 		self._name      = p_name;
 		self._placeData = p_placeData;
+
+
+	# Add user as participant ---
+	def addParticipant(self, p_user):
+		self._users.append(p_user);
 
 
 # ---------------------
@@ -58,13 +67,15 @@ class QestCommandAction:
 	_discordClient  = None;
 	_discordChannel = None;
 	_gameState      = None;
+	_casterUserID   = None;
 
 
 	# Ctor ---
-	def __init__(self, p_discordClient, p_discordChannel, p_gameState):
+	def __init__(self, p_discordClient, p_discordChannel, p_gameState, p_casterUserID):
 		self._discordClient  = p_discordClient;
 		self._discordChannel = p_discordChannel;
 		self._gameState 	 = p_gameState;
+		self._casterUserID 	 = p_casterUserID;
 
 
 	# Execute command ---
@@ -76,6 +87,9 @@ class QestCommandAction:
 		action = p_argMap[config.SUBCOMMAND_KEY][0];
 		if action == "post":
 			return await self._process_quest_post_cmd(p_argMap);
+
+		if action == "accept":
+			return await self._process_quest_accept_cmd(p_argMap);
 
 		if action == "place":
 			return await self._process_quest_place_cmd(p_argMap);
@@ -96,6 +110,7 @@ class QestCommandAction:
 				placeData = places[random.randint(0, len(places)-1)];
 				newQuest  = QuestData(name, placeData);
 
+				self._gameState.addQuest(newQuest);
 				await self.postQuestToChat(newQuest);
 				return True;
 
@@ -121,10 +136,46 @@ class QestCommandAction:
 			return False;
 
 		newQuest = QuestData(questName, placeData);
-		#globalQuests.append(newQuest);
+		self._gameState.addQuest(newQuest);
 
 		await self.postQuestToChat(newQuest);
 		return True;
+
+
+	# Process "quest accept ..." command ---
+	async def _process_quest_accept_cmd(self, p_argMap):
+		if len(p_argMap[config.SUBCOMMAND_KEY]) < 2:
+			if len(self._gameState._activeQuests) == 0:
+				msg = "_There are no quests to join now, human. Me sad._";
+				await self._discordClient.send_message(self._discordChannel, msg);
+				return False;
+
+			if len(self._gameState._activeQuests) == 1:
+				usr = self._gameState.getUserByID(self._casterUserID);
+				quest = self._gameState._activeQuests[0];
+				quest.addParticipant(usr);
+				username = usr.getNameRepresentation();
+				msg = "_" + username + " joined **" + quest._name + "**_";
+				await self._discordClient.send_message(self._discordChannel, msg);
+				return True;
+
+			msg = "_Joining quest is good, but which -- that is the question._";
+			await self._discordClient.send_message(self._discordChannel, msg);
+			return False;
+
+		quest = self._gameState.getQuestByID(p_argMap[config.SUBCOMMAND_KEY][1]);
+		if quest is None:
+			msg = "_Sober up, human! There is no such quest active._";
+			await self._discordClient.send_message(self._discordChannel, msg);
+			return False;
+
+		usr = self._gameState.getUserByID(self._casterUserID);
+		quest.addParticipant(usr);
+		username = usr.getNameRepresentation();
+		msg = "_" + username + " joined **" + quest._name + "**_";
+		await self._discordClient.send_message(self._discordChannel, msg);
+		return True;
+			
 
 
 	# Process "quest place ..." command ---

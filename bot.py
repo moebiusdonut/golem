@@ -4,6 +4,7 @@ import discord
 import config
 import quest
 import state
+import user
 import shlex
 
 client = discord.Client();
@@ -44,6 +45,12 @@ async def on_message(message):
     if not message.content.startswith(config.COMMAND_SYMBOL) or len(message.content) == 1:
         return;
 
+    usrID = message.author.id;
+    usr = gameState.getUserByID(usrID);
+    if usr is None:
+        gameState.addUser(usrID, message.author.name);
+
+
     splitted = message.content.split(' ', 1);
     command = splitted[0];
 
@@ -65,7 +72,7 @@ async def on_message(message):
 
     # Commands factory
     if command == 'quest':
-        cmdAction = quest.QestCommandAction(client, message.channel, gameState);
+        cmdAction = quest.QestCommandAction(client, message.channel, gameState, usrID);
         result = await cmdAction.execute(argMap);
     
 
@@ -84,6 +91,9 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+
+    for memeber in client.get_all_members():
+        print(memeber.id + " = " + memeber.name);
     
     gameState.load();
 
