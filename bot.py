@@ -32,12 +32,17 @@ class AsyncTimer:
 
 # Time control ---
 async def timedAction():
-    asyncTimer = AsyncTimer(60 * 5, timedAction);
-    print("Heartbeat --");
+    global asyncTimer;
+    global lastTimedActionTime;
 
+    asyncTimer = AsyncTimer(60 * 5, timedAction);
     now = datetime.datetime.now()
-    if now.hour == 13 and now.minute >= 30 and lastTimedActionTime.minute < 30:
-        await gameState.finishAllActiveQuests(client, client.get_channel('509421753106169879')); # ugly hack
+
+    prev = lastTimedActionTime;
+    print("Heartbeat - [" + str(prev.hour) + ":" + str(prev.minute) + "] -> [" + str(now.hour) + ":" + str(now.minute) + "]");
+
+    if now.hour == 13 and now.minute >= 10 and lastTimedActionTime.minute < 10:
+        await gameState.finishAllActiveQuests(client, client.get_channel('500630431167807489')); # ugly hack
 
     lastTimedActionTime = now;
 
@@ -112,6 +117,14 @@ async def on_message(message):
     if command == 'quest':
         cmdAction = quest.QestCommandAction(client, message.channel, gameState, usrID);
         result = await cmdAction.execute(argMap);
+
+    elif command == 'say':
+        if len(argMap[config.SUBCOMMAND_KEY]) > 0:
+            await client.delete_message(message);
+
+            msg = "_" + argMap[config.SUBCOMMAND_KEY][0] + "_";
+            await client.send_message(message.channel, msg);
+            result = True;
     
 
 
